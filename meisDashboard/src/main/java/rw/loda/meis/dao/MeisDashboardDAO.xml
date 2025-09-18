@@ -1,0 +1,951 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="rw.loda.meis.dao.MeisDashboardDAO">
+
+	
+	<select id="getCntAllSectorCovered"  resultType="int">
+		SELECT COUNT(DISTINCT g.name) AS sector_count
+			FROM vuppwpayrollorder v, GovSector g
+			WHERE v.sector_id = g.id
+	</select>
+	
+	<select id="getCntAllWDays"  resultType="int">
+		SELECT COUNT(DISTINCT v.household_id) ,sum(v.days)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id
+	</select>
+	
+	<resultMap type="Student" id="StudentResult1">
+		<id property="id" column="id" />
+		<result property="maleCount" column="male_count" />
+		<result property="femaleCount" column="female_count" />
+		<result property="districtName" column="district_name" />	
+		<result property="totalPaidByMale" column="total_paid_by_male" />	
+		<result property="totalPaidByFemale" column="total_paid_by_female" />	
+		<result property="totalPaidByAll" column="total_paid_by_all" />	
+		<result property="totalCount" column="total_count" />
+		<result property="chbecd" column="chbecd" />
+		<result property="totalChildren" column="total_children" />
+		<result property="totalBoysChildren" column="total_boys_children" />
+		<result property="totalGirlsChildren" column="total_girls_children" />
+		
+		
+		<!-- <result property="maleCountMU" column="maleCountMU" />	
+		<result property="maleCountMU" column="femaleCountMU" />	
+		<result property="totalPaidMU" column="total_paid_MU" />	
+		
+		<result property="maleCountVU" column="maleCountVU" />
+		<result property="femaleCountVU" column="femaleCountVU" />	
+		<result property="totalPaidVU" column="total_paid_VU" />	
+		
+		<result property="maleCountNU" column="maleCountNU" />	
+		<result property="femaleCountNU" column="femaleCountNU" />	
+		<result property="totalPaidNU" column="total_paid_NU" /> -->				
+	</resultMap>
+	
+	<resultMap type="Student" id="StudentResult2">
+	     <result property="maleCount" column="male_count" />
+		<result property="femaleCount" column="female_count" />
+		<result property="numberOfSectorsCovered" column="number_of_sectors_Covered" />
+		<result property="numberOfEligibleHousehold" column="number_of_Eligible_household" />
+		<result property="districtName" column="district_name" />	
+		<result property="totalCount" column="total_count" />	
+		<result property="totalPaidByMale" column="total_paid_by_male" />	
+		<result property="totalPaidByFemale" column="total_paid_by_female" />	
+		<result property="totalPaidByAll" column="total_paid_by_all" />	
+		
+		<result property="HHLivestock" column="HH_livestock" />	
+		<result property="HHStartup" column="HH_startup" />
+		<result property="totalQuantity" column="total_quantity" />
+		<result property="quantityLivestock" column="quantity_livestock" />
+		<result property="quantityStartup" column="quantity_startup" />
+		
+		<result property="nbrGoats" column="nbr_goats" />
+		<result property="nbrSheeps" column="nbr_sheeps" />
+		<result property="nbrPigs" column="nbr_pigs" />
+		<result property="nbrChickens" column="nbr_chickens" />
+		<result property="nbrRabbits" column="nbr_rabbits" />
+		<result property="totalCost" column="totalCost" />	
+		
+		<result property="nbrBuildingMasonry" column="nbr_Building_masonry" />	
+		<result property="nbrCarpentry" column="nbr_Carpentry" />	
+		<result property="nbrElectricity" column="nbr_Electricity" />	
+		<result property="nbrHairdressing" column="nbr_Hairdressing" />	
+		<result property="nbrMechanics" column="nbr_Mechanics" />	
+		<result property="nbrSewing" column="nbr_Sewing" />	
+		<result property="nbrShoesmaking" column="nbr_Shoesmaking" />	
+		<result property="nbrWelding" column="nbr_Welding" />	
+		
+		<result property="maleHHCount" column="maleHHCount" />	
+		<result property="femaleHHCount" column="femaleHHCount" />	
+		<result property="disabilityCount" column="disability_count" />
+		<result property="totalBudgetDisability" column="total_budget_for_disability" />
+		
+		
+	</resultMap>
+		
+	
+	
+ 	<select id="getAllKeyIndicatorsCPW"  resultType="rw.loda.meis.vo.DASHMyPageVO" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+	<![CDATA[
+		SELECT
+	            COUNT(DISTINCT gs.name) AS numberOfSectorsCovered,
+	            sum(days.days)  as allWDays,
+	            sum(days.daysmale) as maleAllWDays,
+	            sum(days.daysfemale) as femaleAllWDays,
+	            COUNT(*) AS totalCount,
+			    SUM(CASE WHEN days.daysmale != 0 THEN 1 END) AS maleCount,
+			    SUM(CASE WHEN days.daysfemale != 0 THEN 1 ELSE 0 END) AS femaleCount
+		FROM VupPwWorkingDays days
+			INNER JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			INNER JOIN vuppw pw ON pw.id = payroll.pw_id
+			INNER JOIN project project ON project.id = pw.project_id
+			JOIN ubuhousehold u ON days.household_id = u.id
+			JOIN govvillage gv ON u.village_id = gv.id
+			JOIN govcell gc ON gv.cell_id = gc.id
+			JOIN govsector gs ON gc.sector_id = gs.id
+			JOIN govdistrict gd ON gs.district_id = gd.id
+			
+		WHERE
+		       
+		       days.payroll_id = '40478'
+		       ]]>
+		       <if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+		       AND gd.id = #{districtNo} /* 11 KAMONYI */
+		        ]]>
+                </if> 
+		        
+	        	 <if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[
+                     AND payroll.year_id = #{fiscYr}
+                  ]]>
+                </if>	       
+		                 	
+	</select>
+	
+	<select id="getRecipientsPerDistricts"  resultMap="StudentResult1" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+
+		<![CDATA[
+		SELECT
+		    gd.name AS district_name,
+		    SUM(CASE WHEN v.daysmale != 0 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN v.daysfemale != 0 THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN v.daysmale != 0 THEN v.total ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN v.daysfemale != 0 THEN v.total ELSE 0 END) AS total_paid_by_female,
+            SUM(v.total) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+		FROM VupPwWorkingDays v
+			JOIN vuppwpayrollorder payroll ON payroll.id = v.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		    JOIN GovDistrict gd ON gd.id = project.district_id
+        where 
+        ]]>
+          1=1 
+            	<if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+        
+       			AND gd.id =  #{districtNo}  /* 22 BURERA */
+       			   ]]>
+                </if>  
+       			AND  v.payroll_id = '40478'
+       			      			 
+       			<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[ 
+       			
+       			 AND payroll.year_id = #{fiscYr}
+       			  ]]>
+                </if> 
+		GROUP BY gd.name
+		ORDER BY gd.name
+		
+	</select>
+	
+	<select id="getRecipientsPWPerProjectType"  resultType="rw.loda.meis.vo.DASHMyPageVO" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+	 <![CDATA[
+	 SELECT
+
+             COUNT(CASE WHEN v.daysfemale != 0 AND project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '156' THEN 1 END) AS maleCountPT,
+      		COUNT(CASE WHEN v.daysmale != 0 AND project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '156' THEN 1 END) AS femaleCountPT,
+            SUM(CASE WHEN project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '156'THEN 1 ELSE 0 END) AS totalCountPT,
+
+             COUNT(CASE WHEN v.daysfemale != 0 AND project.typemain_id = '848' AND project.type_id = '105' AND project.typesecond_id = '128' THEN 1 END) AS maleCountRT,
+      		COUNT(CASE WHEN v.daysmale != 0 AND project.typemain_id = '848' AND project.type_id = '105' AND project.typesecond_id = '128' THEN 1 END) AS femaleCountRT,
+            SUM(CASE WHEN project.typemain_id = '848' AND project.type_id = '105' AND project.typesecond_id = '128'THEN 1 ELSE 0 END) AS totalCountRT,
+
+             COUNT(CASE WHEN v.daysfemale != 0 AND project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '117' THEN 1 END) AS maleCountRR,
+      		COUNT(CASE WHEN v.daysmale != 0 AND project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '117' THEN 1 END) AS femaleCountRR,
+            SUM(CASE WHEN project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '117'THEN 1 ELSE 0 END) AS totalCountRR,
+
+		    COUNT(CASE WHEN v.daysfemale != 0 AND project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '166' THEN 1 END) AS maleCountRG,
+      		COUNT(CASE WHEN v.daysmale != 0 AND project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '166' THEN 1 END) AS femaleCountRG,
+            SUM(CASE WHEN project.typemain_id = '848' AND project.type_id = '113' AND project.typesecond_id = '166'THEN 1 ELSE 0 END) AS totalCountRG
+
+		FROM VupPwWorkingDays v
+			JOIN vuppwpayrollorder payroll ON payroll.id = v.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		    JOIN GovDistrict gd ON gd.id = project.district_id
+        where
+        	1=1
+        	]]>
+		    <if test="districtNo != null and districtNo != ''">
+            <![CDATA[
+    			AND gd.id = #{districtNo}    /* 11 KAMONYI */
+    		]]>
+    		</if>
+    			AND v.payroll_id = '40478'
+    		
+    		<if test="fiscYr != null and fiscYr != ''">
+            <![CDATA[
+    			AND payroll.year_id =#{fiscYr}
+    		]]>
+            </if>
+		GROUP BY gd.name
+		ORDER BY gd.name
+	
+	</select>
+	
+	<select id="getAllKeyIndicatorsEPW"  resultType="rw.loda.meis.vo.DASHMyPageVO" parameterType="rw.loda.meis.vo.DASHMyPageVO">	
+	<![CDATA[
+	SELECT
+            COUNT(DISTINCT sector.name) AS numberOfSectorsCovered,
+            /* sum(days.days)  as allWDays,
+            sum(days.daysmale) as maleAllWDays,
+            sum(days.daysfemale) as femaleAllWDays, */
+            SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS femaleCount,
+		    COUNT(*) AS totalCount,
+		    SUM(item.totalamount) AS totalPaidByAll
+
+	 from vupepwpayroll payroll
+        join vupepwpayrollitem item ON payroll.id = item.payroll_id
+        JOIN vupepworder orderR ON payroll.order_id = orderR.id
+         join govsector sector on orderR.sector_id = sector.id
+         JOIN govdistrict gd on sector.district_id = gd.id
+         JOIN censusdatahousehold c ON item.censusdata_id = c.id
+         JOIN ubuperson upp ON c.head_id = upp.id
+        WHERE  payroll_id ='49854' 
+         ]]>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+        	  AND orderR.year_id =#{fiscYr}
+	         ]]>
+            </if>
+            <if test="districtNo != null and districtNo != ''">
+               <![CDATA[
+		       AND gd.id = #{districtNo}  /* 2 GASABO */
+		       ]]>
+            </if>  
+	</select>
+	
+	
+	
+	<select id="getRecipientsPerDistrictsEPW"  resultMap="StudentResult1" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+		<![CDATA[	
+		 SELECT gd.name AS district_name,
+		    SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN upp.gender_id = 9 THEN item.totalamount ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN upp.gender_id = 10 THEN item.totalamount ELSE 0 END) AS total_paid_by_female,
+            SUM(item.totalamount) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+
+		 FROM vupepwpayroll payroll
+		        join vupepwpayrollitem item ON payroll.id = item.payroll_id
+		        JOIN vupepworder orderR ON payroll.order_id = orderR.id
+		         join govsector sector on orderR.sector_id = sector.id
+		         JOIN govdistrict gd on sector.district_id = gd.id
+		         JOIN censusdatahousehold c ON item.censusdata_id = c.id
+		         JOIN ubuperson upp ON c.head_id = upp.id
+		        WHERE 
+		         payroll_id ='49854'
+		      ]]>  
+		        <if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+		         	AND gd.id =  #{districtNo}  /* BURERA*/
+		         ]]>
+                </if> 
+		         
+		   
+		         <if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[ 
+          		 AND orderR.year_id =#{fiscYr}
+          		 ]]>
+                </if> 
+		GROUP BY gd.name
+				ORDER BY gd.name
+				
+				<!-- 6100B105CY01 -->
+		
+	</select>
+	
+	
+	<select id="getRecipientsPerDistrictsEPwECD"  resultMap="StudentResult1" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+	
+		<![CDATA[
+			SELECT   gd.name AS district_name,
+			COUNT(DISTINCT cc.name)  as  chbecd,
+		    SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS female_count,
+		    COUNT(*) AS total_count,
+            SUM(CASE WHEN upp.gender_id = 9  THEN si.amountpayroll ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN upp.gender_id = 10  THEN si.amountpayroll ELSE 0 END) AS total_paid_by_female,
+            SUM(si.amountpayroll) AS total_paid_by_all,
+            COALESCE(MAX(child_counts.total_children), 0) AS total_children,
+            COALESCE(MAX(child_counts.total_boys_children), 0) AS total_boys_children,
+   		    COALESCE(MAX(child_counts.total_girls_children), 0) AS total_girls_children
+
+		from SpPayrollEcd s
+		          JOIN sppayrollecditem  si ON s.id = si.payroll_id
+		          JOIN vupecdworker w ON  w.id = si.worker_id
+		          JOIN vupecdcenter cc on cc.id = w.center_id 
+		          JOIN censusdataperson c on c.id =w.cdp_id
+		          JOIN ubuperson upp on upp.id = c.person_id
+		          JOIN govsector g ON s.sector_id = g.id
+		          JOIN govdistrict gd on gd.id = g.district_id
+				  LEFT JOIN (
+					    SELECT
+					        gd.id AS district_id,
+					        COUNT(DISTINCT child.id) AS total_children,
+					        COUNT(DISTINCT CASE WHEN upp.gender_id = 9 THEN child.id END) AS total_boys_children,
+       						COUNT(DISTINCT CASE WHEN upp.gender_id = 10 THEN child.id END) AS total_girls_children
+					    FROM vupecdcenter center
+					    JOIN govcell cell ON center.cell_id = cell.id
+					    JOIN govsector gs ON cell.sector_id = gs.id
+					    JOIN govdistrict gd ON gs.district_id = gd.id
+					    JOIN vupecdmonitoring monitoring ON center.id = monitoring.center_id
+					    JOIN vupecdmonitoringchild child ON monitoring.id = child.monitoring_id
+					    JOIN censusdataperson c ON child.cdp_id = c.id
+    					JOIN ubuperson upp ON upp.id = c.person_id
+					    WHERE monitoring.month_id = '1421'					    
+					    ]]>
+		       			<if test="fiscYr != null and fiscYr != ''">
+                  		<![CDATA[
+					    
+					      AND monitoring.year_id = #{fiscYr}
+					    ]]> 
+					    </if>
+					    <if test="districtNo != null and districtNo != ''">
+                 		 <![CDATA[					    
+					      AND  gd.id = #{districtNo}  /* BUGESERA */
+
+					       ]]>
+                		</if> 
+					      
+					      
+					    GROUP BY gd.id
+					 ) AS child_counts ON child_counts.district_id = gd.id
+		          
+		          
+		    where 
+		    			
+		     s.id ='3976'
+		    
+		    <if test="districtNo != null and districtNo != ''">
+		       <![CDATA[ 
+		       AND gd.id = #{districtNo} 
+		       ]]>
+            </if>
+		    
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[    
+		      AND w.year_id =#{fiscYr}
+		       ]]>
+            </if>
+		      
+		          GROUP BY gd.name
+		          order by gd.name
+		
+	</select>
+	
+	
+	<select id="getAllKeyIndicatorsDS"  resultType="rw.loda.meis.vo.DASHMyPageVO" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+	<![CDATA[
+	SELECT  COUNT(DISTINCT sector.name) AS numberOfSectorsCovered,
+         	COUNT( item.household_id) AS numberOfEligibleHousehold,
+        	COUNT( CASE WHEN up.gender_id = 9 THEN item.household_id END) AS maleCount,
+         	COUNT(CASE WHEN up.gender_id = 10 THEN item.household_id END) AS femaleCount,
+        	SUM(item.amount) AS totalPaidByAll,
+        	SUM( CASE WHEN up.gender_id = 9 THEN item.amount END) AS totalPaidByMale,
+   		 	SUM( CASE WHEN up.gender_id = 10  THEN item.amount END) AS totalPaidByFemale
+           FROM VupDsPayroll payroll
+                 JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+                 JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                 JOIN ubuperson up ON cd.head_id = up.id
+                 JOIN GovSector sector ON sector.id = payroll.sector_id
+                 JOIN govdistrict gd on gd.id = sector.district_id
+         WHERE
+            1=1 
+            ]]>
+            <if test="districtNo != null and districtNo != ''">
+              <![CDATA[
+                     AND  gd.id = #{districtNo}  /* 30 BUGESERA */
+             ]]>
+            </if> 
+             
+           
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+             
+             AND payroll.year_id = #{fiscYr}
+
+			 ]]>
+             </if> 
+	</select>
+	
+	
+	<select id="getRecipientsPerDistrictsDS"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+	 <![CDATA[
+	  SELECT 
+	     gd.name AS district_name,
+         COUNT(DISTINCT sector.id) AS number_of_sectors_Covered,
+         COUNT( item.household_id) AS number_of_Eligible_household,
+         COUNT( CASE WHEN up.gender_id = 9 THEN item.household_id END) AS male_count,
+         COUNT( CASE WHEN up.gender_id = 10 THEN item.household_id END) AS female_count,
+         SUM(item.amount) AS total_paid_by_all,
+     SUM( CASE WHEN up.gender_id = 9 THEN item.amount END) AS total_paid_by_male,
+   		    SUM( CASE WHEN up.gender_id = 10  THEN item.amount END) AS total_paid_by_female
+         
+
+            from VupDsPayroll payroll
+                JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+               JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                 JOIN ubuperson up ON cd.head_id = up.id
+                JOIN GovSector sector ON sector.id = payroll.sector_id
+                JOIN govdistrict gd on gd.id = sector.district_id
+            where 
+             1=1 
+            ]]>
+            <if test="districtNo != null and districtNo != ''">
+              <![CDATA[
+           		  AND  gd.id = #{districtNo}   /* 30 TODO : to be remove */
+           		  ]]>
+           		 </if>   
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+           		  
+           		  AND payroll.year_id =#{fiscYr}
+
+           		  
+           		 	 ]]>
+             </if> 
+           		  
+       
+	GROUP BY gd.name
+
+</select>
+
+
+<select id="getRecipientsPerDistrictsDsWithDisability"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+<![CDATA[
+SELECT
+    gd.name AS district_name,
+    COUNT(up.id) AS total_count,
+    COUNT(CASE WHEN  up.gender_id = 10 THEN up.id END) AS female_count,
+    COUNT(CASE WHEN up.gender_id = 9 THEN up.id END) AS maleCount,
+    SUM(item.amount ) AS total_paid_by_all,
+    SUM(CASE WHEN up.gender_id = 10 THEN item.amount ELSE 0 END) AS total_paid_by_female,
+    SUM(CASE WHEN up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male
+
+
+FROM  VupDsPayroll payroll
+                 JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+                 JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                 JOIN censusdataperson cp ON cd.id = cp.householddata_id
+                 JOIN ubuperson up ON cd.head_id = up.id
+                 JOIN GovSector sector ON sector.id = payroll.sector_id
+                 JOIN govdistrict gd on gd.id = sector.district_id
+                 JOIN ioattributecontainer IO ON cp.attributecontainer_id = IO.id
+                 JOIN ioattributedata data ON IO.id = data.container_id
+                 JOIN ioattributeoption op on data.valueoption_id = op.id
+            where 
+                 /*  AND  payroll.id='89771'*/
+                    data.criteria_id ='59'
+                 ]]>
+                    <if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+                 
+                 	 AND gd.id = #{districtNo}   /*  1 NYARUGENGE*/
+                 	]]>
+                </if> 
+                 	 
+                  AND sector.id = '10'
+                   
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+                  AND payroll.year_id =#{fiscYr}
+ 				]]>
+             </if> 
+
+GROUP BY
+    gd.name
+
+	
+
+</select>
+
+
+<select id="getRcpntsPerDstrctsWithDisabilityUnderAge"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+<![CDATA[
+select gd.name AS district_name,
+         COUNT( item.household_id) AS total_count,
+         COUNT( CASE WHEN up.gender_id = 9 THEN item.household_id END) AS male_count,
+         COUNT(CASE WHEN up.gender_id = 10 THEN item.household_id END) AS female_count,
+         SUM(item.amount) AS total_paid_by_all,
+         SUM( CASE WHEN up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male,
+   		 SUM( CASE WHEN up.gender_id = 10  THEN item.amount ELSE 0 END) AS total_paid_by_female
+            from VupDsPayroll payroll
+                JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+                JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                JOIN ubuperson up ON cd.head_id = up.id
+                JOIN GovSector sector ON sector.id = payroll.sector_id
+                JOIN govdistrict gd on gd.id = sector.district_id
+            where 
+            	1=1 
+      			 /*  AND  payroll.id='89771' */
+      			 ]]>
+		       <if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+         		 AND gd.id = #{districtNo}  /* 30 BUGESERA */
+         		]]>
+         		</if>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+         		
+         		AND payroll.year_id =#{fiscYr}
+
+         		
+			 ]]>
+             </if> 
+         		
+            	<![CDATA[
+        		AND (EXTRACT(YEAR FROM CURRENT_DATE) - up.yearofbirth) < 18
+        		 ]]> 
+			GROUP BY gd.name
+
+
+
+	
+
+</select>
+
+
+<select id="getRcpntsPerDstrctsOAG"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+
+SELECT
+   <![CDATA[ 
+     gd.name AS district_name,
+     COUNT( item.cdp_id) AS total_count,
+     SUM(CASE WHEN up.gender_id = 9 THEN 1 END) AS maleCount,
+     SUM(CASE WHEN up.gender_id = 10 THEN 1 END) AS femaleCount,
+     COUNT(*) AS total_count,
+     SUM(CASE WHEN up.gender_id = 9  THEN item.payrollamount ELSE 0 END) AS total_paid_by_male,
+   	 SUM(CASE WHEN up.gender_id = 10  THEN item.payrollamount ELSE 0 END) AS total_paid_by_female,
+     SUM(item.payrollamount) AS total_paid_by_all,
+     COUNT(DISTINCT CASE WHEN upp.gender_id = 9 THEN h.code END) AS maleHHCount,
+     COUNT(DISTINCT CASE WHEN upp.gender_id = 10 THEN h.code END) AS femaleHHCount
+     /* COUNT(DISTINCT CASE WHEN up.head = true AND up.gender_id = 10 THEN h.code END) AS female_countRRR,
+     COUNT(DISTINCT CASE WHEN up.head = true AND up.gender_id = 9 THEN h.code END) AS maleCountRR, */
+
+            from vupigpayroll payroll
+                JOIN vupigpayrollitem item ON payroll.id = item.payroll_id
+                JOIN censusdataperson person ON person.id = item.cdp_id
+                  JOIN GovSector sector ON sector.id = payroll.sector_id
+                 JOIN govdistrict gd on gd.id = sector.district_id
+                  join ubuperson up on person.person_id = up.id
+                  join censusdatahousehold  house ON house.id = person.householddata_id
+                 JOIN ubuhousehold h on h.id =  house.household_id
+                 LEFT JOIN ubuperson upp on upp.id = h.head_id
+
+         where 
+          1=1
+          ]]>
+		       <if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+          		 AND   gd.id = #{districtNo}   /* 30 BUGESERA TODO : to be remove */
+           		]]>
+               </if> 
+           
+        
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+          AND payroll.year_id = #{fiscYr}
+
+          ]]>
+             </if> 
+          
+          
+	GROUP BY
+    gd.name
+
+</select>
+<select id="getRcpntsPerDstrctsSkills"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+	<![CDATA[
+	select
+	     gd.name AS district_name,
+	     COUNT(hood.cdp_id) AS total_count,
+	     SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+	     SUM(CASE WHEN upp.gender_id = 10 THEN 1 END) AS femaleCount,
+		 SUM(CASE WHEN upp.gender_id = 9  THEN training.estimatedbudget ELSE 0 END) AS total_paid_by_male,
+	     SUM(CASE WHEN upp.gender_id = 10  THEN training.estimatedbudget ELSE 0 END) AS total_paid_by_female,
+	     SUM(training.estimatedbudget) AS total_paid_by_all,
+	     SUM(
+		        CASE
+		            WHEN EXISTS (
+		                SELECT 1
+		                FROM ioattributecontainer io
+		                JOIN ioattributedata d ON io.id = d.container_id
+		                JOIN ioattributeoption o ON d.valueoption_id = o.id
+		                WHERE io.id = cp.attributecontainer_id
+		                  AND d.criteria_id = '59'
+		            ) THEN 1
+		            ELSE 0
+		        END
+		    ) AS disability_count,
+		   SUM(
+		        CASE
+		            WHEN EXISTS (
+		                SELECT 1
+		                FROM ioattributecontainer io
+		                JOIN ioattributedata d ON io.id = d.container_id
+		                JOIN ioattributeoption o ON d.valueoption_id = o.id
+		                WHERE io.id = cp.attributecontainer_id
+		                  AND d.criteria_id = '59'
+		            ) THEN training.estimatedbudget
+		            ELSE 0
+		        END
+		    ) AS total_budget_for_disability
+	     
+	    FROM spattraining training
+	         JOIN splivelihoodneed hood on training.need_id = hood.id
+	         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+	         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+	         JOIN ubuhousehold u on u.id = hh.household_id
+	         /* JOIN ubuperson up on up.id = hh.head_id */
+	         JOIN ubuperson upp on  cp.person_id = upp.id
+	         JOIN govcell gc on gc.id = training.cell_id
+	         JOIN GovSector sector ON sector.id = gc.sector_id
+	         JOIN govdistrict gd on gd.id = sector.district_id
+	   WHERE 
+	     1=1
+	   		]]>
+	   	
+		     <if test="districtNo != null and districtNo != ''">
+                  <![CDATA[
+	   		AND  gd.id = #{districtNo}    /* 30 BUGESERA TODO : to be remove */
+	   		 ]]>
+             </if> 
+	   		
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+             		
+	   		AND training.year_id= #{fiscYr}
+
+	   		 ]]>
+             </if> 
+	   		
+	
+	GROUP BY
+	    gd.name
+    
+    </select>
+
+<select id="getRcpntsPerDstrctsAsset"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+    <![CDATA[
+    SELECT
+       gd.name AS district_name,
+       COUNT(hood.cdp_id) AS total_count,
+       SUM(CASE WHEN upp.gender_id = 9 THEN 1 ELSE 0 END) AS maleCount,
+       SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS femaleCount,
+       SUM(CASE WHEN upp.gender_id = 9  THEN distribution.totalcost ELSE 0 END) AS total_paid_by_male,
+   	   SUM(CASE WHEN upp.gender_id = 10  THEN distribution.totalcost ELSE 0 END) AS total_paid_by_female,
+       SUM(distribution.totalcost) AS total_paid_by_all,
+       COUNT(DISTINCT CASE WHEN status.parent_id = 2051 THEN hh.id ELSE NULL END) AS HH_livestock,
+       COUNT( DISTINCT CASE WHEN   status.parent_id = 2053 THEN hh.id ELSE NULL END) AS HH_startup,
+       SUM(distribution.quantity) AS total_quantity,
+       SUM(CASE WHEN status.parent_id = 2051  THEN distribution.quantity ELSE 0 END) AS quantity_livestock,
+       SUM(CASE WHEN status.parent_id = 2053  THEN distribution.quantity ELSE 0 END) AS quantity_startup,
+       SUM(
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM ioattributecontainer io
+                    JOIN ioattributedata d ON io.id = d.container_id
+                    JOIN ioattributeoption o ON d.valueoption_id = o.id
+                    WHERE io.id = cp.attributecontainer_id
+                      AND d.criteria_id = '59'
+                ) THEN 1
+                ELSE 0
+            END
+        ) AS disability_count
+       
+
+      FROM spatdistribution distribution
+         JOIN splivelihoodneed hood on distribution.need_id = hood.id
+         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+         JOIN ubuhousehold u on u.id = hh.household_id
+         JOIN ubuperson upp on  cp.person_id = upp.id
+         JOIN govcell gc on gc.id = distribution.cell_id
+         JOIN GovSector sector ON sector.id = gc.sector_id
+         JOIN govdistrict gd on gd.id = sector.district_id
+         JOIN iostatus status ON status.id = distribution.category_id
+      WHERE distribution.cell_id = '621'
+         ]]>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+           and distribution.year_id=#{fiscYr}
+
+         	 ]]>
+             </if> 
+         <if test="districtNo != null and districtNo != ''">
+             <![CDATA[ 
+             AND gd.id = #{districtNo}  /* 10 MUHANGA */
+
+           ]]>
+         </if> 
+           
+           
+  GROUP BY
+    gd.name
+    </select>
+    
+    
+     <select id="getRcpntsPerDstrctsLiveStock"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+    <![CDATA[ 
+     SELECT
+            gd.name AS district_name,
+	        COUNT(DISTINCT CASE WHEN status.parent_id = 2051 THEN hh.id ELSE NULL END) AS HH_livestock,
+	        SUM(CASE WHEN distribution.category_id = 2056 THEN distribution.quantity ELSE 0 END) AS Nbr_goats,
+            SUM(CASE WHEN distribution.category_id = 2057 THEN distribution.quantity ELSE 0 END) AS Nbr_sheeps,
+            SUM(CASE WHEN distribution.category_id = 2058 THEN distribution.quantity ELSE 0 END) AS Nbr_pigs,
+            SUM(CASE WHEN distribution.category_id = 2054 THEN distribution.quantity ELSE 0 END) AS Nbr_chickens,
+            SUM(CASE WHEN distribution.category_id = 2055 THEN distribution.quantity ELSE 0 END) AS Nbr_rabbits,
+	       /*  SUM(distribution.quantity) AS total_quantity,*/
+	        SUM(CASE WHEN status.parent_id = 2051  THEN distribution.quantity ELSE 0 END) AS quantity_livestock ,
+	        SUM(CASE WHEN status.parent_id = 2051 THEN distribution.totalcost ELSE 0 END) AS totalCost
+
+      FROM spatdistribution distribution
+         JOIN splivelihoodneed hood on distribution.need_id = hood.id
+         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+         JOIN ubuhousehold u on u.id = hh.household_id
+         JOIN ubuperson upp on  cp.person_id = upp.id
+         JOIN govcell gc on gc.id = distribution.cell_id
+         JOIN GovSector sector ON sector.id = gc.sector_id
+         JOIN govdistrict gd on gd.id = sector.district_id
+         JOIN iostatus status ON status.id = distribution.category_id
+      WHERE distribution.cell_id = '621' 
+      
+      ]]>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+      
+       		and distribution.year_id=#{fiscYr}
+       			 ]]>
+             </if> 
+             <if test="districtNo != null and districtNo != ''">
+             <![CDATA[ 
+             	AND gd.id = #{districtNo}  /* 10 MUHANGA */
+
+           	]]>
+        	 </if> 
+       		
+  GROUP BY
+    gd.name
+     
+     </select>
+     
+     <select id="getRcpntsPerDstrctsStartup"  resultMap="StudentResult2" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+     <![CDATA[
+     select
+           gd.name AS district_name,
+           COUNT(DISTINCT CASE WHEN status.parent_id = 2053 THEN hh.id ELSE NULL END) AS HH_startup,
+           SUM(CASE WHEN distribution.category_id = 2096 THEN distribution.quantity ELSE 0 END) AS nbr_Building_masonry,
+           SUM(CASE WHEN distribution.category_id = 2097 THEN distribution.quantity ELSE 0 END) AS nbr_Carpentry,
+           SUM(CASE WHEN distribution.category_id = 2299 THEN distribution.quantity ELSE 0 END) AS nbr_Electricity,
+           SUM(CASE WHEN distribution.category_id = 2098 THEN distribution.quantity ELSE 0 END) AS nbr_Hairdressing,
+           SUM(CASE WHEN distribution.category_id = 2277 THEN distribution.quantity ELSE 0 END) AS nbr_Mechanics ,
+           SUM(CASE WHEN distribution.category_id = 2061 THEN distribution.quantity ELSE 0 END) AS nbr_Sewing ,
+           SUM(CASE WHEN distribution.category_id = 2296 THEN distribution.quantity ELSE 0 END) AS nbr_Shoesmaking ,
+           SUM(CASE WHEN distribution.category_id = 2292 THEN distribution.quantity ELSE 0 END) AS nbr_Welding ,
+           SUM(CASE WHEN status.parent_id = 2053  THEN distribution.quantity ELSE 0 END) AS quantity_startup ,
+           SUM(CASE WHEN status.parent_id = 2053 THEN distribution.totalcost ELSE 0 END) AS totalCost
+      from spatdistribution distribution
+         JOIN splivelihoodneed hood on distribution.need_id = hood.id
+         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+         JOIN ubuhousehold u on u.id = hh.household_id
+         JOIN ubuperson upp on  cp.person_id = upp.id
+         JOIN govcell gc on gc.id = distribution.cell_id
+         JOIN GovSector sector ON sector.id = gc.sector_id
+         JOIN govdistrict gd on gd.id = sector.district_id
+         JOIN iostatus status ON status.id = distribution.category_id
+        where distribution.cell_id = '621' 
+        ]]>
+         	<if test="fiscYr != null and fiscYr != ''">
+             <![CDATA[                     
+        	  and distribution.year_id=#{fiscYr}
+			 ]]>
+             </if> 
+             <if test="districtNo != null and districtNo != ''">
+              <![CDATA[
+               AND gd.id = #{districtNo} /* 10 MUHANGA */
+              ]]>
+             </if>
+        	  
+  GROUP BY
+    gd.name
+     
+     </select>
+     
+     <select id="getRecipientsPerDistrictsShock"  resultMap="StudentResult1" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+     <![CDATA[
+	   SELECT
+	     gd.name AS district_name,
+	     SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+	     SUM(CASE WHEN upp.gender_id = 10 THEN 1 END) AS femaleCount,
+	     COUNT(*) AS total_count,
+	     SUM(CASE WHEN upp.gender_id = 9 THEN item.amounttotal ELSE 0 END) AS total_paid_by_male,
+	   	 SUM(CASE WHEN upp.gender_id = 10 THEN item.amounttotal ELSE 0 END) AS total_paid_by_female,
+	     SUM(item.amounttotal) AS total_paid_by_all
+	
+	    FROM sppayrollsritem item
+	        JOIN sppayrollsr sr ON item.payroll_id = sr.id
+	        JOIN shockevent event on item.event_id = event.id
+	        JOIN censusdatahousehold census ON event.cdh_id = census.id
+	        JOIN ubuperson upp ON census.head_id = upp.id
+	        JOIN govdistrict gd on sr.district_id = gd.id
+	       where 
+	       /*sr.id='2' */
+	       1=1
+	      ]]>
+		    <if test="districtNo != null and districtNo != ''">
+            <![CDATA[ 
+	        AND gd.id = #{districtNo}   /*  14  RUBAVU TODO : to be remove */
+	     	]]>
+	     	</if>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+	       AND sr.year_id =#{fiscYr}
+
+			 ]]>
+             </if> 
+
+	  GROUP BY
+	    gd.name
+     
+     </select>
+     
+ <select id="getRecipientsPerDistrictsPerfIndicator"  resultType="rw.loda.meis.vo.DASHMyPageVO" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+      
+  <![CDATA[    
+   SELECT
+     gd.name AS district_name,
+     SUM(CASE WHEN upp.gender_id = 9 AND event.urgency_id = 2364  THEN 1  ELSE 0 END) AS maleCountVU,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.urgency_id = 2364 THEN 1 ELSE 0 END) AS femaleCountVU,
+     SUM(CASE WHEN event.urgency_id = 2364 THEN item.amounttotal ELSE 0 END) AS totalPaidVU,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.urgency_id = 2362  THEN 1  ELSE 0 END) AS maleCountNU,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.urgency_id = 2362 THEN 1 ELSE 0 END) AS femaleCountNU,
+     SUM(CASE WHEN event.urgency_id = 2362 THEN item.amounttotal ELSE 0 END) AS totalPaidNU,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.urgency_id = 2363  THEN 1  ELSE 0 END) AS maleCountMU,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.urgency_id = 2363 THEN 1 ELSE 0 END) AS femaleCountMU,
+     SUM(CASE WHEN event.urgency_id = 2363 THEN item.amounttotal ELSE 0 END) AS totalPaidMU
+
+    FROM sppayrollsritem item
+        JOIN sppayrollsr sr ON item.payroll_id = sr.id
+        JOIN shockevent event on item.event_id = event.id
+        JOIN censusdatahousehold census ON event.cdh_id = census.id
+        JOIN ubuperson upp ON census.head_id = upp.id
+        JOIN govdistrict gd on sr.district_id = gd.id
+        where sr.id='2'
+         ]]>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[  
+        
+          AND sr.year_id =#{fiscYr}
+
+           ]]>
+             </if> 
+          <if test="districtNo != null and districtNo != ''">
+           <![CDATA[  
+           	AND gd.id = #{districtNo}
+           ]]>
+           </if> 
+          
+ GROUP BY
+    gd.name
+      
+      </select>
+      
+  <select id="getRecipientsPerDistrictsPerfIndicatorShock"  resultType="rw.loda.meis.vo.DASHMyPageVO" parameterType="rw.loda.meis.vo.DASHMyPageVO">
+    <![CDATA[
+     SELECT
+     gd.name AS district_name,
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2355  THEN 1  ELSE 0 END) AS maleCountDHHBW,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2355 THEN 1 ELSE 0 END) AS femaleCountDHHBW,
+     SUM(CASE WHEN event.type_id = 2355 THEN item.amounttotal ELSE 0 END) AS totalPaidDHHBW,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2356  THEN 1  ELSE 0 END) AS maleCountSIHHBW,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2356 THEN 1 ELSE 0 END) AS femaleCountSIHHBW,
+     SUM(CASE WHEN event.type_id = 2356 THEN item.amounttotal ELSE 0 END) AS totalPaidSIHHBW,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2358  THEN 1  ELSE 0 END) AS maleCountPLS,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2358 THEN 1 ELSE 0 END) AS femaleCountPLS,
+     SUM(CASE WHEN event.type_id = 2358 THEN item.amounttotal ELSE 0 END) AS totalPaidPLS,
+
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2359  THEN 1  ELSE 0 END) AS maleCountCLS,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2359 THEN 1 ELSE 0 END) AS femaleCountCLS,
+     SUM(CASE WHEN event.type_id = 2359 THEN item.amounttotal ELSE 0 END) AS totalPaidCLS,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2360  THEN 1  ELSE 0 END) AS maleCountLDA,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2360 THEN 1 ELSE 0 END) AS femaleCountLDA,
+     SUM(CASE WHEN event.type_id = 2360 THEN item.amounttotal ELSE 0 END) AS totalPaidLDA,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2361  THEN 1  ELSE 0 END) AS maleCountLC,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2361 THEN 1 ELSE 0 END) AS femaleCountLC,
+     SUM(CASE WHEN event.type_id = 2361 THEN item.amounttotal ELSE 0 END) AS totalPaidLC
+
+    FROM sppayrollsritem item
+        JOIN sppayrollsr sr ON item.payroll_id = sr.id
+        JOIN shockevent event on item.event_id = event.id
+        JOIN censusdatahousehold census ON event.cdh_id = census.id
+        JOIN ubuperson upp ON census.head_id = upp.id
+        JOIN govdistrict gd on sr.district_id = gd.id
+        where sr.id='2'
+        ]]>
+         	<if test="fiscYr != null and fiscYr != ''">
+                  <![CDATA[ 
+            AND sr.year_id =#{fiscYr}
+
+             ]]>
+             </if> 
+           <if test="districtNo != null and districtNo != ''">
+           <![CDATA[  
+           	AND gd.id = #{districtNo}
+           ]]>
+           </if> 
+             
+             
+            
+ GROUP BY
+    gd.name
+    
+    </select>
+	
+	
+	
+	
+
+
+</mapper>

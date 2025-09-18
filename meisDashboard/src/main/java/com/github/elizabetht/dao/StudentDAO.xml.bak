@@ -1,0 +1,1003 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.github.elizabetht.dao.StudentDAO">
+
+	<insert id="insertStudent" parameterType="Student"
+		useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO student(userName,
+		password, firstName,lastName, dateOfBirth,
+		emailAddress)
+		VALUES(#{userName},#{password}, #{firstName},
+		#{lastName},#{dateOfBirth}, #{emailAddress})
+	</insert>
+
+
+
+	<resultMap type="Student" id="StudentResult">
+		<id property="id" column="id" />
+		<result property="userName" column="userName" />
+		<result property="password" column="password" />
+		<result property="firstName" column="firstName" />
+		<result property="lastName" column="lastName" />
+		<result property="dateOfBirth" column="dateOfBirth" />
+		<result property="emailAddress" column="emailAddress" />
+	</resultMap>
+
+	<select id="getStudents" resultMap="StudentResult">
+		SELECT * FROM student
+	</select>
+	
+	<resultMap type="Student" id="StudentResult1">
+		<id property="id" column="id" />
+		<result property="maleCount" column="male_count" />
+		<result property="femaleCount" column="female_count" />
+		<result property="districtName" column="district_name" />	
+		<result property="totalPaidByMale" column="total_paid_by_male" />	
+		<result property="totalPaidByFemale" column="total_paid_by_female" />	
+		<result property="totalPaidByAll" column="total_paid_by_all" />	
+		<result property="totalCount" column="total_count" />
+		<result property="chbecd" column="chbecd" />
+		
+		
+		<!-- <result property="maleCountMU" column="maleCountMU" />	
+		<result property="maleCountMU" column="femaleCountMU" />	
+		<result property="totalPaidMU" column="total_paid_MU" />	
+		
+		<result property="maleCountVU" column="maleCountVU" />
+		<result property="femaleCountVU" column="femaleCountVU" />	
+		<result property="totalPaidVU" column="total_paid_VU" />	
+		
+		<result property="maleCountNU" column="maleCountNU" />	
+		<result property="femaleCountNU" column="femaleCountNU" />	
+		<result property="totalPaidNU" column="total_paid_NU" /> -->				
+	</resultMap>
+	
+	<resultMap type="Student" id="StudentResult2">
+	     <result property="maleCount" column="male_count" />
+		<result property="femaleCount" column="female_count" />
+		<result property="numberOfSectorsCovered" column="number_of_sectors_Covered" />
+		<result property="numberOfEligibleHousehold" column="number_of_Eligible_household" />
+		<result property="districtName" column="district_name" />	
+		<result property="totalCount" column="total_count" />	
+		<result property="totalPaidByMale" column="total_paid_by_male" />	
+		<result property="totalPaidByFemale" column="total_paid_by_female" />	
+		<result property="totalPaidByAll" column="total_paid_by_all" />	
+		
+		<result property="HHLivestock" column="HH_livestock" />	
+		<result property="HHStartup" column="HH_startup" />
+		<result property="totalQuantity" column="total_quantity" />
+		<result property="quantityLivestock" column="quantity_livestock" />
+		<result property="quantityStartup" column="quantity_startup" />
+		
+		<result property="nbrGoats" column="nbr_goats" />
+		<result property="nbrSheeps" column="nbr_sheeps" />
+		<result property="nbrPigs" column="nbr_pigs" />
+		<result property="nbrChickens" column="nbr_chickens" />
+		<result property="nbrRabbits" column="nbr_rabbits" />
+		<result property="totalCost" column="totalCost" />	
+		
+		<result property="nbrBuildingMasonry" column="nbr_Building_masonry" />	
+		<result property="nbrCarpentry" column="nbr_Carpentry" />	
+		<result property="nbrElectricity" column="nbr_Electricity" />	
+		<result property="nbrHairdressing" column="nbr_Hairdressing" />	
+		<result property="nbrMechanics" column="nbr_Mechanics" />	
+		<result property="nbrSewing" column="nbr_Sewing" />	
+		<result property="nbrShoesmaking" column="nbr_Shoesmaking" />	
+		<result property="nbrWelding" column="nbr_Welding" />	
+		
+		
+	</resultMap>
+		
+	<select id="getAllKeyIndicatorsCPW"  resultType="com.github.elizabetht.vo.Student">
+	
+		SELECT
+	            COUNT(DISTINCT gs.name) AS numberOfSectorsCovered,
+	            sum(days.days)  as allWDays,
+	            sum(days.daysmale) as maleAllWDays,
+	            sum(days.daysfemale) as femaleAllWDays,
+	            COUNT(*) AS totalCount,
+			    SUM(CASE WHEN days.daysmale != 0 THEN 1 END) AS maleCount,
+			    SUM(CASE WHEN days.daysfemale != 0 THEN 1 ELSE 0 END) AS femaleCount
+		FROM VupPwWorkingDays days
+			INNER JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			INNER JOIN vuppw pw ON pw.id = payroll.pw_id
+			INNER JOIN project project ON project.id = pw.project_id
+			JOIN ubuhousehold u ON days.household_id = u.id
+			JOIN govvillage gv ON u.village_id = gv.id
+			JOIN govcell gc ON gv.cell_id = gc.id
+			JOIN govsector gs ON gc.sector_id = gs.id
+			JOIN govdistrict gd ON gs.district_id = gd.id
+			
+		WHERE
+		       project.typemain_id = '831'
+		       AND days.payroll_id = '40478'<!--  TO BE REMOVE -->
+		       AND gd.id = '11'	 
+		       AND payroll.year_id ='18'            	
+	</select>
+	
+	
+	<select id="getCntAllSectorCovered"  resultType="int">
+		<!-- SELECT COUNT(DISTINCT g.name) AS sector_count
+			FROM vuppwpayrollorder v, GovSector g
+			WHERE v.sector_id = g.id -->
+			
+		 SELECT COUNT(DISTINCT gs.name)
+			FROM VupPwWorkingDays days
+			INNER JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			INNER JOIN vuppw pw ON pw.id = payroll.pw_id
+			INNER JOIN project project ON project.id = pw.project_id
+			JOIN ubuhousehold u ON days.household_id = u.id
+					JOIN govvillage gv ON u.village_id = gv.id
+					JOIN govcell gc ON gv.cell_id = gc.id
+					JOIN govsector gs ON gc.sector_id = gs.id
+					JOIN govdistrict gd ON gs.district_id = gd.id
+			WHERE
+			      project.typemain_id = '831' 
+			      AND days.payroll_id = '40478' <!-- TO BE REMOVED -->
+			
+	</select>
+	
+	<select id="getCntAllWDays"  resultType="int">
+		<!-- SELECT sum(v.days)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id -->
+		
+		SELECT sum(days.days) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		WHERE
+	      project.typemain_id = '831'
+	      AND days.payroll_id = '40478' <!-- TO BE REMOVED -->
+	</select>
+	<select id="getCntMaleAllWDays"  resultType="int">
+		<!-- SELECT sum(v.daysmale)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id -->
+		
+		SELECT sum(days.daysmale) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		WHERE
+	      project.typemain_id = '831'
+	      AND days.payroll_id = '40478' <!-- TO BE REMOVED -->
+		
+	</select>
+	<select id="getCntFemaleAllWDays"  resultType="int">
+		<!-- SELECT sum(v.daysfemale)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id -->
+		
+		SELECT sum(days.daysfemale) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		WHERE
+	      project.typemain_id = '831'
+	       AND days.payroll_id = '40478' <!-- TO BE REMOVED -->
+	       
+	</select>
+	
+	<select id="getCntHHEmployed"  resultType="int">
+		SELECT count(v.household_id)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id
+		 AND v.payroll_id = '40478' <!-- TO BE REMOVED -->
+	</select>
+	<select id="getCntMaleHHEmployed"  resultType="int">
+		SELECT count(v.household_id)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id and v.daysmale = 0
+		 AND v.payroll_id = '40478' <!-- TO BE REMOVED -->
+	</select>
+	
+	<select id="getCntFemaleHHEmployed"  resultType="int">
+		SELECT count(v.household_id)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id and v.daysfemale = 0
+		 AND v.payroll_id = '40478' <!-- TO BE REMOVED -->
+	</select>
+	
+	
+	
+	<select id="getRecipientsPerDistricts"  resultMap="StudentResult1">
+	<!-- 	SELECT
+		    gd.name AS district_name,
+		    SUM(CASE WHEN it.code = 'male' THEN 1 ELSE 0 END) AS male_count,
+		    SUM(CASE WHEN it.code = 'female' THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN it.code = 'male' THEN v.total ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN it.code = 'female' THEN v.total ELSE 0 END) AS total_paid_by_female,
+            SUM(v.total) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+		FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id
+		JOIN ubuperson up ON up.household_id = u.id
+		JOIN iostatus it ON it.id = up.gender_id
+		JOIN govvillage gv ON u.village_id = gv.id
+		JOIN govcell gc ON gv.cell_id = gc.id
+		JOIN govsector gs ON gc.sector_id = gs.id
+		JOIN govdistrict gd ON gs.district_id = gd.id
+		GROUP BY gd.name
+		ORDER BY gd.name -->
+		
+		
+		<!-- SELECT
+		    gd.name AS district_name,
+		    SUM(CASE WHEN v.daysmale != 0 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN v.daysfemale != 0 THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN v.daysmale != 0 THEN v.total ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN v.daysfemale != 0 THEN v.total ELSE 0 END) AS total_paid_by_female,
+            SUM(v.total) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+		FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id
+		JOIN govvillage gv ON u.village_id = gv.id
+		JOIN govcell gc ON gv.cell_id = gc.id
+		JOIN govsector gs ON gc.sector_id = gs.id
+		JOIN govdistrict gd ON gs.district_id = gd.id
+		GROUP BY gd.name
+		ORDER BY gd.name -->
+		
+		SELECT
+		    gd.name AS district_name,
+		    SUM(CASE WHEN v.daysmale != 0 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN v.daysfemale != 0 THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN v.daysmale != 0 THEN v.total ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN v.daysfemale != 0 THEN v.total ELSE 0 END) AS total_paid_by_female,
+            SUM(v.total) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+		FROM VupPwWorkingDays v
+			JOIN vuppwpayrollorder payroll ON payroll.id = v.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		    JOIN GovDistrict gd ON gd.id = project.district_id
+        where project.typemain_id = '831'
+       			 AND gd.id = '11'   <!-- TODO : to be remove -->
+       			 AND v.payroll_id = '40478' <!-- TODO : to be remove -->
+       			 AND payroll.year_id ='18'
+		GROUP BY gd.name
+		ORDER BY gd.name
+		
+	</select>
+	
+	
+<!-- Transportation  103 1.01-->
+<select id="getRecipientsPerProjectsTransport"  resultType="com.github.elizabetht.vo.Student">	
+<!-- 	SELECT
+     SUM(CASE WHEN it.code = 'male' THEN 1 ELSE 0 END) AS maleCount,
+    SUM(CASE WHEN it.code = 'female' THEN 1 ELSE 0 END) AS femaleCount,
+    COUNT(*) AS totalCount
+	FROM ubuhousehold u
+		JOIN ubuperson up ON up.household_id = u.id
+		JOIN iostatus it ON it.id = up.gender_id
+		JOIN govvillage gv ON u.village_id = gv.id
+		JOIN govcell gc ON gv.cell_id = gc.id
+		JOIN govsector gs ON gc.sector_id = gs.id
+		JOIN govdistrict gd ON gs.district_id = gd.id
+		JOIN project p ON p.district_id = gd.id
+	WHERE p.typemain_id = '831'
+	  AND p.type_id = '103'
+	  AND u.code = '110403060235' -->
+	  
+	  SELECT COUNT(CASE WHEN days.daysfemale != 0 THEN 1 END) AS maleCount,
+      		COUNT(CASE WHEN days.daysmale != 0 THEN 1 END) AS femaleCount,
+     		COUNT(*) AS totalCount
+		FROM VupPwWorkingDays days
+		JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+		JOIN vuppw pw ON pw.id = payroll.pw_id
+		JOIN project project ON project.id = pw.project_id
+		JOIN ubuhousehold u ON days.household_id = u.id
+		WHERE
+		    <!--  project.code = '5100B105AY24' AND
+		     days.payroll_id = '40478' AND -->
+		     project.typemain_id = '831' AND
+		     project.type_id = '103';
+	  
+	  <!-- select *  from VupPwWorkingDays days
+		JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+		JOIN vuppw pw ON pw.id = payroll.pw_id
+		JOIN project project ON project.id = pw.project_id
+        where project.code ='5100B105AY24'  and days.payroll_id = '40478' ; 
+        select * from ubuperson u where u.household_id ='734999';
+        -->
+  </select>
+  
+  
+  <!-- code 113 1.08 : Progressive terraces  ,Radical terraces ,Environment  and natural ressources or agriculture  113-->
+<select id="getRecipientsPerProjectsTerrace"  resultType="com.github.elizabetht.vo.Student">	
+
+	 
+	  SELECT COUNT(CASE WHEN days.daysfemale != 0 THEN 1 END) AS maleCount,
+      		COUNT(CASE WHEN days.daysmale != 0 THEN 1 END) AS femaleCount,
+     		COUNT(*) AS totalCount
+		FROM VupPwWorkingDays days
+		JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+		JOIN vuppw pw ON pw.id = payroll.pw_id
+		JOIN project project ON project.id = pw.project_id
+		JOIN ubuhousehold u ON days.household_id = u.id
+		WHERE
+		     <!-- project.code = '5100B105AY24' AND
+		     days.payroll_id = '40478' AND -->
+		     project.typemain_id = '831' AND
+		     project.type_id = '113';
+	  
+	
+	
+  </select>
+  
+  
+  
+ <!-- 1455 spEpw--> 
+  <select id="getAllKeyIndicatorsEPW"  resultType="com.github.elizabetht.vo.Student">	
+	SELECT
+            COUNT(DISTINCT sector.name) AS numberOfSectorsCovered,
+           <!--  sum(days.days)  as allWDays,
+            sum(days.daysmale) as maleAllWDays,
+            sum(days.daysfemale) as femaleAllWDays, -->
+            SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS femaleCount,
+		    COUNT(*) AS totalCount,
+		    SUM(item.totalamount) AS totalPaidByAll
+
+	 from vupepwpayroll payroll
+        join vupepwpayrollitem item ON payroll.id = item.payroll_id
+        JOIN vupepworder orderR ON payroll.order_id = orderR.id
+         join govsector sector on orderR.sector_id = sector.id
+         JOIN govdistrict gd on sector.district_id = gd.id
+         JOIN censusdatahousehold c ON item.censusdata_id = c.id
+         JOIN ubuperson upp ON c.head_id = upp.id
+        WHERE  payroll_id ='49854' <!--  TO BE REMOVED -->
+        	  AND orderR.year_id ='18'
+	        
+	</select>
+  
+  
+  	<select id="getCntAllSectorCoveredByePw"  resultType="int">
+		
+		SELECT COUNT(DISTINCT gs.name)
+		FROM VupPwWorkingDays days
+		INNER JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+		INNER JOIN vuppw pw ON pw.id = payroll.pw_id
+		INNER JOIN project project ON project.id = pw.project_id
+		JOIN ubuhousehold u ON days.household_id = u.id
+				JOIN govvillage gv ON u.village_id = gv.id
+				JOIN govcell gc ON gv.cell_id = gc.id
+				JOIN govsector gs ON gc.sector_id = gs.id
+				JOIN govdistrict gd ON gs.district_id = gd.id
+		WHERE
+		
+		
+		      project.typemain_id = '1455'
+		      
+		 <!-- SELECT COUNT(DISTINCT payroll.sector_id)
+			   FROM VupPwWorkingDays days
+			INNER JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			INNER JOIN vuppw pw ON pw.id = payroll.pw_id
+			INNER JOIN project project ON project.id = pw.project_id
+			WHERE project.typemain_id = '1455' -->
+	</select>
+	
+	<select id="getCntAllWDaysEPw"  resultType="int">
+	 
+		SELECT sum(days.days) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		WHERE
+	      project.typemain_id = '1455'
+	</select>
+	<select id="getCntMaleAllWDaysEPw"  resultType="int">
+		<!-- SELECT sum(v.daysmale)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id -->
+		
+		SELECT sum(days.daysmale) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		WHERE
+	      project.typemain_id = '1455'
+	</select>
+	<select id="getCntFemaleAllWDaysEPw"  resultType="int">
+		<!-- SELECT sum(v.daysfemale)
+			FROM vuppwworkingdays v
+		JOIN ubuhousehold u ON v.household_id = u.id -->
+		
+		SELECT sum(days.daysfemale) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		WHERE
+	      project.typemain_id = '1455'
+	      
+	</select>
+	
+	<select id="getCntHHEmployedEPw"  resultType="int">
+		 select count(days.household_id) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+			JOIN GovDistrict gd ON gd.id = project.district_id
+		WHERE
+	      project.typemain_id = '1455'
+	       AND gd.id = '22'    <!-- TODO : to be remove -->
+	</select>
+	
+	
+	
+	<select id="getCntFemaleHHEmployedEPw"  resultType="int">
+		select count(days.household_id) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+			JOIN GovDistrict gd ON gd.id = project.district_id
+		WHERE
+     	 project.typemain_id = '1455' and days.daysfemale = 0 
+     	  AND gd.id = '22'    <!-- TODO : to be remove -->
+	</select>
+	
+	<select id="getCntMaleHHEmployedEPw"  resultType="int">
+	 select count(days.household_id) FROM VupPwWorkingDays days
+			JOIN vuppwpayrollorder payroll ON payroll.id = days.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+			JOIN GovDistrict gd ON gd.id = project.district_id
+		WHERE
+     	 project.typemain_id = '1455' and days.daysmale = 0
+     	  AND gd.id = '22'    <!-- TODO : to be remove -->
+	</select>
+	
+	
+	<select id="getRecipientsPerDistrictsEPW"  resultMap="StudentResult1">
+			
+		 SELECT gd.name AS district_name,
+		    SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN upp.gender_id = 9 THEN item.totalamount ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN upp.gender_id = 10 THEN item.totalamount ELSE 0 END) AS total_paid_by_female,
+            SUM(item.totalamount) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+
+		 FROM vupepwpayroll payroll
+		        join vupepwpayrollitem item ON payroll.id = item.payroll_id
+		        JOIN vupepworder orderR ON payroll.order_id = orderR.id
+		         join govsector sector on orderR.sector_id = sector.id
+		         JOIN govdistrict gd on sector.district_id = gd.id
+		         JOIN censusdatahousehold c ON item.censusdata_id = c.id
+		         JOIN ubuperson upp ON c.head_id = upp.id
+		        WHERE 
+		         payroll_id ='49854'
+		         AND gd.id = '22'    <!-- TODO : to be remove -->
+          		 AND orderR.year_id ='18'
+		GROUP BY gd.name
+				ORDER BY gd.name
+				
+				<!-- 6100B105CY01 -->
+		
+	</select>
+	
+	<select id="getRecipientsPerDistrictsEPwLB"  resultMap="StudentResult1">
+	
+		
+		SELECT
+		    gd.name AS district_name,
+		    SUM(CASE WHEN v.daysmale != 0 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN v.daysfemale != 0 THEN 1 ELSE 0 END) AS female_count,
+		    SUM(CASE WHEN v.daysmale != 0 THEN v.total ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN v.daysfemale != 0 THEN v.total ELSE 0 END) AS total_paid_by_female,
+            SUM(v.total) AS total_paid_by_all,
+		    COUNT(*) AS total_count
+		FROM VupPwWorkingDays v
+			JOIN vuppwpayrollorder payroll ON payroll.id = v.payroll_id
+			JOIN invoice invoice ON invoice.id = payroll.invoice_id
+			JOIN vuppw pw ON pw.id = payroll.pw_id
+			JOIN project project ON project.id = pw.project_id
+		    JOIN GovDistrict gd ON gd.id = project.district_id
+        where project.typemain_id = '1455' and project.typesp_id ='1456'
+          	AND gd.id = '30'    <!-- TODO : to be remove -->
+          	AND orderR.year_id ='18'
+		GROUP BY gd.name
+		ORDER BY gd.name
+		
+	</select>
+	<select id="getRecipientsPerDistrictsEPwECD"  resultMap="StudentResult1">
+	
+		
+			SELECT   gd.name AS district_name,
+			COUNT(DISTINCT cc.name)  as  chbecd,
+		    SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+		    SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS female_count,
+		    COUNT(*) AS total_count,
+            SUM(CASE WHEN upp.gender_id = 9  THEN si.amountpayroll ELSE 0 END) AS total_paid_by_male,
+   		    SUM(CASE WHEN upp.gender_id = 10  THEN si.amountpayroll ELSE 0 END) AS total_paid_by_female,
+            SUM(si.amountpayroll) AS total_paid_by_all
+
+		from SpPayrollEcd s
+		          JOIN sppayrollecditem  si ON s.id = si.payroll_id
+		          JOIN vupecdworker w ON  w.id = si.worker_id
+		          JOIN vupecdcenter cc on cc.id = w.center_id 
+		          JOIN censusdataperson c on c.id =w.cdp_id
+		          JOIN ubuperson upp on upp.id = c.person_id
+		          JOIN govsector g ON s.sector_id = g.id
+		          JOIN govdistrict gd on gd.id = g.district_id
+		    where w.year_id ='18'
+		    <!--  AND gd.id = '30'  -->   <!-- TODO : to be remove -->
+		      AND  s.id ='3976'
+		      AND gd.id = '2' 
+		          GROUP BY gd.name
+		          order by gd.name
+		
+	</select>
+	
+	
+
+	<!-- DS -->
+	
+	<select id="getAllKeyIndicatorsDS"  resultType="com.github.elizabetht.vo.Student">
+	
+	SELECT  COUNT(DISTINCT sector.name) AS numberOfSectorsCovered,
+         	COUNT( item.household_id) AS numberOfEligibleHousehold,
+        	COUNT( CASE WHEN up.gender_id = 9 THEN item.household_id END) AS maleCount,
+         	COUNT(CASE WHEN up.gender_id = 10 THEN item.household_id END) AS femaleCount,
+        	SUM(item.amount) AS totalPaidByAll,
+        	SUM( CASE WHEN up.gender_id = 9 THEN item.amount END) AS totalPaidByMale,
+   		 	SUM( CASE WHEN up.gender_id = 10  THEN item.amount END) AS totalPaidByFemale
+           FROM VupDsPayroll payroll
+                 JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+                 JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                 JOIN ubuperson up ON cd.head_id = up.id
+                 JOIN GovSector sector ON sector.id = payroll.sector_id
+                 JOIN govdistrict gd on gd.id = sector.district_id
+         WHERE
+             <!-- payroll.id='89771' AND -->
+             gd.id = '30' AND
+             payroll.year_id = '18'
+	
+	</select>
+	
+	
+	<select id="getRecipientsPerDistrictsDS"  resultMap="StudentResult2">
+	  SELECT 
+	     gd.name AS district_name,
+         COUNT(DISTINCT sector.id) AS number_of_sectors_Covered,
+         COUNT( item.household_id) AS number_of_Eligible_household,
+         COUNT( CASE WHEN up.gender_id = 9 THEN item.household_id END) AS male_count,
+         COUNT( CASE WHEN up.gender_id = 10 THEN item.household_id END) AS female_count,
+         SUM(item.amount) AS total_paid_by_all,
+     SUM( CASE WHEN up.gender_id = 9 THEN item.amount END) AS total_paid_by_male,
+   		    SUM( CASE WHEN up.gender_id = 10  THEN item.amount END) AS total_paid_by_female
+         
+
+            from VupDsPayroll payroll
+                JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+               JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                 JOIN ubuperson up ON cd.head_id = up.id
+                JOIN GovSector sector ON sector.id = payroll.sector_id
+                JOIN govdistrict gd on gd.id = sector.district_id
+            where payroll.year_id ='18'
+           		  AND gd.id = '30'   <!-- TODO : to be remove -->
+       
+	GROUP BY gd.name
+
+</select>
+
+<select id="getRecipientsPerDistrictsDsWithDisability"  resultMap="StudentResult2">
+
+SELECT
+    gd.name AS district_name,
+    COUNT(up.id) AS total_count,
+    COUNT(CASE WHEN  up.gender_id = 10 THEN up.id END) AS female_count,
+    COUNT(CASE WHEN up.gender_id = 9 THEN up.id END) AS maleCount,
+    SUM(item.amount ) AS total_paid_by_all,
+    SUM(CASE WHEN up.gender_id = 10 THEN item.amount ELSE 0 END) AS total_paid_by_female,
+    SUM(CASE WHEN up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male
+
+
+FROM  VupDsPayroll payroll
+                 JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+                 JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                 JOIN censusdataperson cp ON cd.id = cp.householddata_id
+                 JOIN ubuperson up ON cd.head_id = up.id
+                 JOIN GovSector sector ON sector.id = payroll.sector_id
+                 JOIN govdistrict gd on gd.id = sector.district_id
+                 JOIN ioattributecontainer IO ON cp.attributecontainer_id = IO.id
+                 JOIN ioattributedata data ON IO.id = data.container_id
+                 JOIN ioattributeoption op on data.valueoption_id = op.id
+            where payroll.year_id ='18'
+                 <!--  AND  payroll.id='89771' -->
+                  AND data.criteria_id ='59'
+                  AND gd.id = '1'
+                  AND sector.id = '10'
+GROUP BY
+    gd.name
+
+<!-- select
+    gd.name AS district_name,
+    COUNT(up.id) AS total_count,
+    COUNT(CASE WHEN  up.gender_id = 10 THEN up.id END) AS female_count,
+    COUNT(CASE WHEN up.gender_id = 9 THEN up.id END) AS maleCount,
+    SUM(item.amount ) AS total_paid_by_all,
+    SUM(CASE WHEN up.gender_id = 10 THEN item.amount ELSE 0 END) AS total_paid_by_female,
+    SUM(CASE WHEN up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male
+
+from
+      censusdataperson cp
+     JOIN censusdatahousehold h on h.id = cp.householddata_id
+     JOIN ubuperson up on cp.person_id = up.id
+      JOIN ioattributecontainer IO on cp.attributecontainer_id = IO.id
+      JOIN ioattributedata data ON IO.id = data.container_id
+      join ioattributeoption op on data.valueoption_id = op.id
+      JOIN VupDsPayrollItem item ON h.id = item.cdh_id
+      JOIN VupDsPayroll payroll on item.payroll_id = payroll.id
+        JOIN GovSector sector ON sector.id = payroll.sector_id
+    JOIN govdistrict gd on gd.id = sector.district_id
+where
+
+     data.criteria_id ='59'
+     AND  payroll.id='89771'
+     AND payroll.year_id ='18'
+GROUP BY
+    gd.name -->
+
+
+
+<!-- 	SELECT
+    gd.name AS district_name,
+    COUNT(DISTINCT item.household_id) AS total_count,
+    COUNT(DISTINCT CASE WHEN up.head = true AND up.gender_id = 10 THEN u.id END) AS female_count,
+    COUNT(DISTINCT CASE WHEN up.head = true AND up.gender_id = 9 THEN u.id END) AS maleCount,
+    SUM(item.amount) AS total_paid_by_all,
+    SUM(CASE WHEN up.head = true  THEN item.amount ELSE 0 END) AS total_paid_by_all,
+    SUM(CASE WHEN up.head = true AND up.gender_id = 10 THEN item.amount ELSE 0 END) AS total_paid_by_female,
+    SUM(CASE WHEN up.head = true AND up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male
+FROM ubuhousehold u
+    JOIN ubuperson up ON up.household_id = u.id
+    JOIN censusdataperson cp ON cp.person_id = up.id
+    JOIN censusdatahousehold h ON h.id = cp.householddata_id
+    JOIN census cs ON cs.id = h.census_id
+    JOIN ioattributecontainer IO ON cp.attributecontainer_id = IO.id
+    JOIN ioattributedata data ON IO.id = data.container_id
+    JOIN ioattributeoption op ON data.valueoption_id = op.id
+    JOIN VupDsPayrollItem item ON item.household_id = u.id
+    JOIN VupDsPayroll payroll ON payroll.id = item.payroll_id
+    JOIN GovSector sector ON sector.id = payroll.sector_id
+    JOIN govdistrict gd ON gd.id = sector.district_id
+WHERE
+    u.code = '410603010055'
+    AND data.criteria_id = '59'
+    AND cs.year_id = '18'
+GROUP BY
+    gd.name -->
+	
+
+</select>
+
+
+<select id="getRcpntsPerDstrctsWithDisabilityUnderAge"  resultMap="StudentResult2">
+
+select gd.name AS district_name,
+         COUNT( item.household_id) AS total_count,
+         COUNT( CASE WHEN up.gender_id = 9 THEN item.household_id END) AS male_count,
+         COUNT(CASE WHEN up.gender_id = 10 THEN item.household_id END) AS female_count,
+         SUM(item.amount) AS total_paid_by_all,
+         SUM( CASE WHEN up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male,
+   		 SUM( CASE WHEN up.gender_id = 10  THEN item.amount ELSE 0 END) AS total_paid_by_female
+            from VupDsPayroll payroll
+                JOIN VupDsPayrollItem item ON payroll.id = item.payroll_id
+                JOIN censusdatahousehold cd  ON cd.id = item.cdh_id
+                JOIN ubuperson up ON cd.head_id = up.id
+                JOIN GovSector sector ON sector.id = payroll.sector_id
+                JOIN govdistrict gd on gd.id = sector.district_id
+            where 
+            	payroll.year_id ='18'
+      			 <!--  AND  payroll.id='89771' -->
+         		AND  gd.id = '30'
+            	<![CDATA[
+        		AND (EXTRACT(YEAR FROM CURRENT_DATE) - up.yearofbirth) < 18
+        		 ]]> 
+			GROUP BY gd.name
+
+
+<!-- 
+SELECT
+    gd.name AS district_name,
+    COUNT(DISTINCT item.household_id) AS total_count,
+    COUNT(DISTINCT CASE WHEN up.head = true AND up.gender_id = 10 THEN u.id END) AS female_count,
+    COUNT(DISTINCT CASE WHEN up.head = true AND up.gender_id = 9 THEN u.id END) AS maleCount,
+    SUM(item.amount) AS total_paid_by_all,
+    SUM(CASE WHEN up.head = true  THEN item.amount ELSE 0 END) AS total_paid_by_all,
+    SUM(CASE WHEN up.head = true AND up.gender_id = 10 THEN item.amount ELSE 0 END) AS total_paid_by_female,
+    SUM(CASE WHEN up.head = true AND up.gender_id = 9 THEN item.amount ELSE 0 END) AS total_paid_by_male
+FROM ubuhousehold u
+    JOIN ubuperson up ON up.household_id = u.id
+    JOIN censusdataperson cp ON cp.person_id = up.id
+    JOIN censusdatahousehold h ON h.id = cp.householddata_id
+    JOIN census cs ON cs.id = h.census_id
+    JOIN ioattributecontainer IO ON cp.attributecontainer_id = IO.id
+    JOIN ioattributedata data ON IO.id = data.container_id
+    JOIN ioattributeoption op ON data.valueoption_id = op.id
+    JOIN VupDsPayrollItem item ON item.household_id = u.id
+    JOIN VupDsPayroll payroll ON payroll.id = item.payroll_id
+    JOIN GovSector sector ON sector.id = payroll.sector_id
+    JOIN govdistrict gd ON gd.id = sector.district_id
+WHERE
+    u.code = '410603010055'
+    AND data.criteria_id = '59'
+    AND cs.year_id = '18'  
+    <![CDATA[
+    AND (EXTRACT(YEAR FROM CURRENT_DATE) - up.yearofbirth) < 18
+    ]]>  
+   
+GROUP BY
+    gd.name -->
+	
+
+</select>
+
+
+<select id="getRcpntsPerDstrctsOAG"  resultMap="StudentResult2">
+
+SELECT
+    
+     gd.name AS district_name,
+     COUNT( item.cdp_id) AS total_count,
+     SUM(CASE WHEN up.gender_id = 9 THEN 1 END) AS maleCount,
+     SUM(CASE WHEN up.gender_id = 10 THEN 1 END) AS femaleCount,
+     COUNT(*) AS total_count,
+     SUM(CASE WHEN up.gender_id = 9  THEN item.payrollamount ELSE 0 END) AS total_paid_by_male,
+   	 SUM(CASE WHEN up.gender_id = 10  THEN item.payrollamount ELSE 0 END) AS total_paid_by_female,
+     SUM(item.payrollamount) AS total_paid_by_all
+
+            from vupigpayroll payroll
+                JOIN vupigpayrollitem item ON payroll.id = item.payroll_id
+                JOIN censusdataperson person ON person.id = item.cdp_id
+                  JOIN GovSector sector ON sector.id = payroll.sector_id
+                 JOIN govdistrict gd on gd.id = sector.district_id
+                  join ubuperson up on person.person_id = up.id
+                  join censusdatahousehold  house ON house.id = person.householddata_id
+                 JOIN ubuhousehold h on h.id =  house.household_id
+
+         where payroll.year_id = '18'
+          AND gd.id = '30'   <!-- TODO : to be remove -->
+	GROUP BY
+    gd.name
+
+</select>
+<select id="getRcpntsPerDstrctsSkills"  resultMap="StudentResult2">
+	select
+	     gd.name AS district_name,
+	     COUNT(hood.cdp_id) AS total_count,
+	     SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+	     SUM(CASE WHEN upp.gender_id = 10 THEN 1 END) AS femaleCount,
+		 SUM(CASE WHEN upp.gender_id = 9  THEN training.estimatedbudget ELSE 0 END) AS total_paid_by_male,
+	     SUM(CASE WHEN upp.gender_id = 10  THEN training.estimatedbudget ELSE 0 END) AS total_paid_by_female,
+	     SUM(training.estimatedbudget) AS total_paid_by_all
+	    FROM spattraining training
+	         JOIN splivelihoodneed hood on training.need_id = hood.id
+	         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+	         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+	         JOIN ubuhousehold u on u.id = hh.household_id
+	         <!-- JOIN ubuperson up on up.id = hh.head_id -->
+	         JOIN ubuperson upp on  cp.person_id = upp.id
+	         JOIN govcell gc on gc.id = training.cell_id
+	         JOIN GovSector sector ON sector.id = gc.sector_id
+	         JOIN govdistrict gd on gd.id = sector.district_id
+	   WHERE training.year_id='18'
+	   		AND gd.id = '30'   <!-- TODO : to be remove -->
+	
+	GROUP BY
+	    gd.name
+    
+    </select>
+    
+    
+    <select id="getRcpntsPerDstrctsAsset"  resultMap="StudentResult2">
+    
+    SELECT
+       gd.name AS district_name,
+       COUNT(hood.cdp_id) AS total_count,
+       SUM(CASE WHEN upp.gender_id = 9 THEN 1 ELSE 0 END) AS maleCount,
+       SUM(CASE WHEN upp.gender_id = 10 THEN 1 ELSE 0 END) AS femaleCount,
+       SUM(CASE WHEN upp.gender_id = 9  THEN distribution.totalcost ELSE 0 END) AS total_paid_by_male,
+   	   SUM(CASE WHEN upp.gender_id = 10  THEN distribution.totalcost ELSE 0 END) AS total_paid_by_female,
+       SUM(distribution.totalcost) AS total_paid_by_all,
+       COUNT(DISTINCT CASE WHEN status.parent_id = 2051 THEN hh.id ELSE NULL END) AS HH_livestock,
+       COUNT( DISTINCT CASE WHEN   status.parent_id = 2053 THEN hh.id ELSE NULL END) AS HH_startup,
+       SUM(distribution.quantity) AS total_quantity,
+       SUM(CASE WHEN status.parent_id = 2051  THEN distribution.quantity ELSE 0 END) AS quantity_livestock,
+       SUM(CASE WHEN status.parent_id = 2053  THEN distribution.quantity ELSE 0 END) AS quantity_startup
+
+      FROM spatdistribution distribution
+         JOIN splivelihoodneed hood on distribution.need_id = hood.id
+         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+         JOIN ubuhousehold u on u.id = hh.household_id
+         JOIN ubuperson upp on  cp.person_id = upp.id
+         JOIN govcell gc on gc.id = distribution.cell_id
+         JOIN GovSector sector ON sector.id = gc.sector_id
+         JOIN govdistrict gd on gd.id = sector.district_id
+         JOIN iostatus status ON status.id = distribution.category_id
+      WHERE distribution.cell_id = '621' 
+           and distribution.year_id='18'
+  GROUP BY
+    gd.name
+    </select>
+    
+    
+     <select id="getRcpntsPerDstrctsLiveStock"  resultMap="StudentResult2">
+     
+     SELECT
+            gd.name AS district_name,
+	        COUNT(DISTINCT CASE WHEN status.parent_id = 2051 THEN hh.id ELSE NULL END) AS HH_livestock,
+	        SUM(CASE WHEN distribution.category_id = 2056 THEN distribution.quantity ELSE 0 END) AS Nbr_goats,
+            SUM(CASE WHEN distribution.category_id = 2057 THEN distribution.quantity ELSE 0 END) AS Nbr_sheeps,
+            SUM(CASE WHEN distribution.category_id = 2058 THEN distribution.quantity ELSE 0 END) AS Nbr_pigs,
+            SUM(CASE WHEN distribution.category_id = 2054 THEN distribution.quantity ELSE 0 END) AS Nbr_chickens,
+            SUM(CASE WHEN distribution.category_id = 2055 THEN distribution.quantity ELSE 0 END) AS Nbr_rabbits,
+	        <!--  SUM(distribution.quantity) AS total_quantity, -->
+	        SUM(CASE WHEN status.parent_id = 2051  THEN distribution.quantity ELSE 0 END) AS quantity_livestock ,
+	        SUM(CASE WHEN status.parent_id = 2051 THEN distribution.totalcost ELSE 0 END) AS totalCost
+
+      FROM spatdistribution distribution
+         JOIN splivelihoodneed hood on distribution.need_id = hood.id
+         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+         JOIN ubuhousehold u on u.id = hh.household_id
+         JOIN ubuperson upp on  cp.person_id = upp.id
+         JOIN govcell gc on gc.id = distribution.cell_id
+         JOIN GovSector sector ON sector.id = gc.sector_id
+         JOIN govdistrict gd on gd.id = sector.district_id
+         JOIN iostatus status ON status.id = distribution.category_id
+      WHERE distribution.cell_id = '621' 
+       		and distribution.year_id='18'
+  GROUP BY
+    gd.name
+     
+     </select>
+     
+     <select id="getRcpntsPerDstrctsStartup"  resultMap="StudentResult2">
+     
+     select
+           gd.name AS district_name,
+           COUNT(DISTINCT CASE WHEN status.parent_id = 2053 THEN hh.id ELSE NULL END) AS HH_startup,
+           SUM(CASE WHEN distribution.category_id = 2096 THEN distribution.quantity ELSE 0 END) AS nbr_Building_masonry,
+           SUM(CASE WHEN distribution.category_id = 2097 THEN distribution.quantity ELSE 0 END) AS nbr_Carpentry,
+           SUM(CASE WHEN distribution.category_id = 2299 THEN distribution.quantity ELSE 0 END) AS nbr_Electricity,
+           SUM(CASE WHEN distribution.category_id = 2098 THEN distribution.quantity ELSE 0 END) AS nbr_Hairdressing,
+           SUM(CASE WHEN distribution.category_id = 2277 THEN distribution.quantity ELSE 0 END) AS nbr_Mechanics ,
+           SUM(CASE WHEN distribution.category_id = 2061 THEN distribution.quantity ELSE 0 END) AS nbr_Sewing ,
+           SUM(CASE WHEN distribution.category_id = 2296 THEN distribution.quantity ELSE 0 END) AS nbr_Shoesmaking ,
+           SUM(CASE WHEN distribution.category_id = 2292 THEN distribution.quantity ELSE 0 END) AS nbr_Welding ,
+           SUM(CASE WHEN status.parent_id = 2053  THEN distribution.quantity ELSE 0 END) AS quantity_startup ,
+           SUM(CASE WHEN status.parent_id = 2053 THEN distribution.totalcost ELSE 0 END) AS totalCost
+      from spatdistribution distribution
+         JOIN splivelihoodneed hood on distribution.need_id = hood.id
+         JOIN censusdatahousehold hh ON hh.id = hood.cdh_id
+         JOIN censusdataperson  cp on cp.id = hood.cdp_id
+         JOIN ubuhousehold u on u.id = hh.household_id
+         JOIN ubuperson upp on  cp.person_id = upp.id
+         JOIN govcell gc on gc.id = distribution.cell_id
+         JOIN GovSector sector ON sector.id = gc.sector_id
+         JOIN govdistrict gd on gd.id = sector.district_id
+         JOIN iostatus status ON status.id = distribution.category_id
+        where distribution.cell_id = '621' 
+        	  and distribution.year_id='18'
+  GROUP BY
+    gd.name
+     
+     </select>
+     
+     <select id="getRecipientsPerDistrictsShock"  resultMap="StudentResult1">
+     
+	   SELECT
+	     gd.name AS district_name,
+	     SUM(CASE WHEN upp.gender_id = 9 THEN 1 END) AS maleCount,
+	     SUM(CASE WHEN upp.gender_id = 10 THEN 1 END) AS femaleCount,
+	     COUNT(*) AS total_count,
+	     SUM(CASE WHEN upp.gender_id = 9 THEN item.amounttotal ELSE 0 END) AS total_paid_by_male,
+	   	 SUM(CASE WHEN upp.gender_id = 10 THEN item.amounttotal ELSE 0 END) AS total_paid_by_female,
+	     SUM(item.amounttotal) AS total_paid_by_all
+	
+	    FROM sppayrollsritem item
+	        JOIN sppayrollsr sr ON item.payroll_id = sr.id
+	        JOIN shockevent event on item.event_id = event.id
+	        JOIN censusdatahousehold census ON event.cdh_id = census.id
+	        JOIN ubuperson upp ON census.head_id = upp.id
+	        JOIN govdistrict gd on sr.district_id = gd.id
+	       <!--  where sr.id='2' -->
+	       AND gd.id = '14'   <!-- TODO : to be remove -->
+	       AND sr.year_id ='18'
+	  GROUP BY
+	    gd.name
+     
+     </select>
+     
+      <select id="getRecipientsPerDistrictsPerfIndicator"  resultType="com.github.elizabetht.vo.Student">
+      
+      
+   SELECT
+     gd.name AS district_name,
+     SUM(CASE WHEN upp.gender_id = 9 AND event.urgency_id = 2364  THEN 1  ELSE 0 END) AS maleCountVU,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.urgency_id = 2364 THEN 1 ELSE 0 END) AS femaleCountVU,
+     SUM(CASE WHEN event.urgency_id = 2364 THEN item.amounttotal ELSE 0 END) AS totalPaidVU,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.urgency_id = 2362  THEN 1  ELSE 0 END) AS maleCountNU,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.urgency_id = 2362 THEN 1 ELSE 0 END) AS femaleCountNU,
+     SUM(CASE WHEN event.urgency_id = 2362 THEN item.amounttotal ELSE 0 END) AS totalPaidNU,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.urgency_id = 2363  THEN 1  ELSE 0 END) AS maleCountMU,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.urgency_id = 2363 THEN 1 ELSE 0 END) AS femaleCountMU,
+     SUM(CASE WHEN event.urgency_id = 2363 THEN item.amounttotal ELSE 0 END) AS totalPaidMU
+
+    FROM sppayrollsritem item
+        JOIN sppayrollsr sr ON item.payroll_id = sr.id
+        JOIN shockevent event on item.event_id = event.id
+        JOIN censusdatahousehold census ON event.cdh_id = census.id
+        JOIN ubuperson upp ON census.head_id = upp.id
+        JOIN govdistrict gd on sr.district_id = gd.id
+        where sr.id='2'
+          AND sr.year_id ='18'
+ GROUP BY
+    gd.name
+      
+      </select>
+      
+  <select id="getRecipientsPerDistrictsPerfIndicatorShock"  resultType="com.github.elizabetht.vo.Student">
+    
+     SELECT
+     gd.name AS district_name,
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2355  THEN 1  ELSE 0 END) AS maleCountDHHBW,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2355 THEN 1 ELSE 0 END) AS femaleCountDHHBW,
+     SUM(CASE WHEN event.type_id = 2355 THEN item.amounttotal ELSE 0 END) AS totalPaidDHHBW,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2356  THEN 1  ELSE 0 END) AS maleCountSIHHBW,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2356 THEN 1 ELSE 0 END) AS femaleCountSIHHBW,
+     SUM(CASE WHEN event.type_id = 2356 THEN item.amounttotal ELSE 0 END) AS totalPaidSIHHBW,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2358  THEN 1  ELSE 0 END) AS maleCountPLS,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2358 THEN 1 ELSE 0 END) AS femaleCountPLS,
+     SUM(CASE WHEN event.type_id = 2358 THEN item.amounttotal ELSE 0 END) AS totalPaidPLS,
+
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2359  THEN 1  ELSE 0 END) AS maleCountCLS,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2359 THEN 1 ELSE 0 END) AS femaleCountCLS,
+     SUM(CASE WHEN event.type_id = 2359 THEN item.amounttotal ELSE 0 END) AS totalPaidCLS,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2360  THEN 1  ELSE 0 END) AS maleCountLDA,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2360 THEN 1 ELSE 0 END) AS femaleCountLDA,
+     SUM(CASE WHEN event.type_id = 2360 THEN item.amounttotal ELSE 0 END) AS totalPaidLDA,
+
+     SUM(CASE WHEN upp.gender_id = 9 AND event.type_id = 2361  THEN 1  ELSE 0 END) AS maleCountLC,
+     SUM(CASE WHEN upp.gender_id = 10 AND event.type_id = 2361 THEN 1 ELSE 0 END) AS femaleCountLC,
+     SUM(CASE WHEN event.type_id = 2361 THEN item.amounttotal ELSE 0 END) AS totalPaidLC
+
+    FROM sppayrollsritem item
+        JOIN sppayrollsr sr ON item.payroll_id = sr.id
+        JOIN shockevent event on item.event_id = event.id
+        JOIN censusdatahousehold census ON event.cdh_id = census.id
+        JOIN ubuperson upp ON census.head_id = upp.id
+        JOIN govdistrict gd on sr.district_id = gd.id
+        where sr.id='2'
+            AND sr.year_id ='18'
+ GROUP BY
+    gd.name
+    
+    </select>
+     
+     
+
+</mapper>
